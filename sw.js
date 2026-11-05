@@ -2,9 +2,9 @@
  * Los datos NO pasan por aquí: viven en el almacenamiento local de la app y se
  * sincronizan con la hoja de cálculo mediante la API de Apps Script.
  * Para publicar una versión nueva, cambie CACHE (por ejemplo, sa27-v2). */
-const CACHE = 'sa27-v1';
-const ARCHIVOS = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png',
-  'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
+const CACHE = 'sa27-v2';
+const ARCHIVOS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png',
+  'icon-maskable-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ARCHIVOS); }));
