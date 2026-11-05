@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asistencia y valoración</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1F3864">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Asistencia">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  :root { --azul:#1F3864; --fondo:#F4F6FA; --borde:#D9DEE8; --txt:#1b1f27; --gris:#6b7280; --rojo:#FFC7CE; --rojot:#9C0006; --ambar:#FFEB9C; --ambart:#7F6000; --verde:#C6EFCE; --verdet:#006100; --celeste:#BDD7EE; --celestet:#1F4E78; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; background:var(--fondo); color:var(--txt); font:16px/1.35 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--azul); color:#fff; padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px; display:flex; gap:8px; align-items:center; }
+  header select { flex:1; min-width:0; font-size:17px; padding:10px; border-radius:10px; border:0; }
+  #sync { background:transparent; border:0; color:#fff; font:inherit; font-size:12px; min-width:104px; text-align:right; padding:6px 0; opacity:.95; }
+  #sync.alerta { color:#FFD7D7; font-weight:700; }
+  #ajustes { background:transparent; border:1px solid rgba(255,255,255,.5); color:#fff; border-radius:10px; font-size:20px; line-height:1; padding:6px 12px; }
+  main { padding:12px 12px 96px; max-width:720px; margin:0 auto; }
+  nav { position:fixed; bottom:0; left:0; right:0; display:flex; background:#fff; border-top:1px solid var(--borde); padding-bottom:env(safe-area-inset-bottom,0px); z-index:5; }
+  nav button { flex:1; padding:14px 0; border:0; background:none; font-size:16px; font-weight:600; color:var(--gris); }
+  nav button.on { color:var(--azul); box-shadow:inset 0 3px 0 var(--azul); }
+  .card { background:#fff; border:1px solid var(--borde); border-radius:14px; padding:12px; margin-bottom:12px; }
+  .row { display:flex; gap:8px; align-items:flex-end; }
+  .row > label { flex:1; font-size:13px; color:var(--gris); display:block; }
+  input, select, textarea { width:100%; font:inherit; padding:10px; border:1px solid var(--borde); border-radius:10px; background:#fff; }
+  .btn { font:inherit; font-weight:600; border:1px solid var(--borde); background:#fff; color:var(--azul); border-radius:12px; padding:12px 14px; min-height:46px; }
+  .btn.primary { background:var(--azul); color:#fff; border-color:var(--azul); }
+  .btn.big { width:100%; margin-top:10px; font-size:17px; min-height:52px; }
+  .btn.small { padding:8px 12px; min-height:38px; font-size:14px; }
+  .btn[disabled] { opacity:.5; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  .chip { border:1px solid var(--borde); background:#fff; border-radius:999px; padding:8px 12px; font-size:14px; }
+  .chip.on { background:var(--azul); color:#fff; border-color:var(--azul); }
+  .banner { display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; background:#E8EEF9; border:1px solid var(--borde); border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:14px; }
+  .list { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .fila { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; text-align:left; font:inherit; background:#fff; border:1px solid var(--borde); border-radius:12px; padding:12px; min-height:52px; }
+  .fila.sig { outline:2px solid var(--azul); }
+  .fila.dos { align-items:flex-start; }
+  .fila .sub { display:block; color:var(--gris); font-size:12.5px; margin-top:2px; }
+  .pill { display:inline-block; padding:5px 10px; border-radius:999px; font-size:13px; font-weight:600; background:#eef0f4; color:var(--gris); white-space:nowrap; }
+  .pill.rojo { background:var(--rojo); color:var(--rojot); }
+  .pill.ambar { background:var(--ambar); color:var(--ambart); }
+  .pill.azul { background:var(--celeste); color:var(--celestet); }
+  .pill.verde { background:var(--verde); color:var(--verdet); }
+  .nt { font-weight:700; font-size:15px; margin-right:6px; }
+  .vacio { color:var(--gris); text-align:center; padding:18px 8px; }
+  .nota { color:var(--gris); font-size:13px; }
+  .chk { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; }
+  .chk input { width:auto; }
+  .velo { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:10; }
+  .hoja { position:fixed; left:0; right:0; bottom:0; z-index:11; background:#fff; border-radius:18px 18px 0 0; padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 14px); max-height:88vh; overflow:auto; max-width:720px; margin:0 auto; }
+  .hoja h2 { margin:4px 0 10px; font-size:18px; color:var(--azul); }
+  .asa { width:44px; height:5px; border-radius:3px; background:var(--borde); margin:0 auto 8px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  .op { font:inherit; font-weight:600; border:2px solid transparent; border-radius:12px; padding:14px 8px; min-height:56px; background:#eef0f4; }
+  .op.rojo { background:var(--rojo); color:var(--rojot); } .op.ambar { background:var(--ambar); color:var(--ambart); }
+  .op.azul { background:var(--celeste); color:var(--celestet); } .op.verde { background:var(--verde); color:var(--verdet); }
+  .op.sel { border-color:var(--azul); }
+  .nivel { display:block; width:100%; text-align:left; font:inherit; border:2px solid transparent; border-radius:12px; padding:12px; margin-bottom:8px; min-height:60px; }
+  .nivel b { font-size:17px; } .nivel small { display:block; opacity:.85; margin-top:2px; }
+  .nivel.sel { border-color:var(--azul); }
+  .sep { margin:12px 0 6px; font-size:13px; color:var(--gris); }
+  .dim { margin:10px 0 4px; font-weight:700; color:var(--azul); font-size:14px; }
+  .opt { display:flex; gap:10px; align-items:center; padding:8px 4px; }
+  .opt input { width:auto; }
+  .bloque { margin:0 0 12px; padding:10px 12px; background:#F7F9FC; border:1px solid var(--borde); border-radius:12px; }
+  .bloque h3 { margin:0 0 6px; font-size:14px; color:var(--azul); }
+  .linea { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:6px 0; border-top:1px solid #E7EBF2; font-size:14.5px; }
+  .linea:first-of-type { border-top:0; }
+  .linea small { display:block; color:var(--gris); font-size:12.5px; }
+  .resumen-ok { font-size:13px; color:var(--gris); margin:6px 2px 0; }
+  .setup { max-width:520px; margin:0 auto; padding:calc(env(safe-area-inset-top,0px) + 24px) 14px 24px; }
+  .setup h1 { color:var(--azul); font-size:22px; margin:0 0 6px; }
+  .setup textarea { height:150px; font-family:monospace; font-size:12px; }
+  .error { background:#FDECEC; border:1px solid #F3B8B8; border-radius:12px; padding:10px 12px; margin-top:8px; font-size:14px; }
+  #toast { position:fixed; left:12px; right:12px; bottom:calc(env(safe-area-inset-bottom,0px) + 70px); z-index:20; background:#222; color:#fff; padding:12px 14px; border-radius:12px; font-size:14px; display:none; }
+  #toast.err { background:#9C0006; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+
+<div id="setup" class="setup" hidden>
+  <h1>Conectar este dispositivo</h1>
+  <p class="nota">En la hoja de cálculo, abra el menú <b>Sistema 2027 → PWA: generar código de conexión</b>, copie el código y péguelo aquí. Solo se hace una vez por dispositivo.</p>
+  <textarea id="codigo" placeholder="Pegue aquí el código de conexión" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+  <div id="setupMsg"></div>
+  <button class="btn primary big" id="btnConectar">Conectar</button>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <select id="grupo" aria-label="Grupo"></select>
+    <button id="sync" title="Estado de la sincronización">…</button>
+    <button id="ajustes" title="Ajustes">⋮</button>
+  </header>
+
+  <main>
+    <section id="vClase">
+      <div class="card">
+        <div class="row">
+          <label>Fecha<input type="date" id="fecha"></label>
+          <label>Bloque (opcional)<input id="bloque" placeholder="1ª hora"></label>
+        </div>
+        <button class="btn primary big" id="btnIniciar">Iniciar clase</button>
+        <div id="recientes" class="chips"></div>
+      </div>
+      <div id="bannerClase"></div>
+      <input id="buscar" type="search" placeholder="Buscar estudiante" hidden>
+      <div id="listaClase" class="list"></div>
+    </section>
+
+    <section id="vValorar" hidden>
+      <div class="card">
+        <div class="row">
+          <label>Actividad<select id="selAct"></select></label>
+          <button class="btn" id="btnNueva">+ Nueva</button>
+        </div>
+        <div id="infoAct" class="nota" style="margin-top:8px"></div>
+        <div id="chipsCrit" class="chips"></div>
+        <label class="chk"><input type="checkbox" id="chkAvanzar"> Abrir el siguiente estudiante al guardar</label>
+        <button class="btn small" id="btnTodos" style="margin-top:10px" hidden>Aplicar un nivel a todos los que faltan</button>
+      </div>
+      <div id="progreso" class="nota"></div>
+      <div id="listaVal" class="list"></div>
+    </section>
+
+    <section id="vResumen" hidden>
+      <div class="card">
+        <div class="row">
+          <label>Periodo<select id="resPeriodo"></select></label>
+          <label>Qué cuenta<select id="resIncluir">
+            <option value="oficial">Solo evaluación oficial</option>
+            <option value="todos">Todos los registros</option>
+          </select></label>
+        </div>
+        <label class="chk"><input type="checkbox" id="resOrden"> Ordenar de menor a mayor nota</label>
+        <button class="btn small" id="resActualizar" style="margin-top:10px">Actualizar</button>
+        <div id="resInfo" class="resumen-ok"></div>
+      </div>
+      <div id="resDist" class="chips"></div>
+      <div id="resLista" class="list"></div>
+    </section>
+  </main>
+
+  <nav>
+    <button id="tabClase" class="on">Clase</button>
+    <button id="tabValorar">Valorar</button>
+    <button id="tabResumen">Resumen</button>
+  </nav>
+</div>
+
+<div id="velo" class="velo" hidden></div>
+<div id="hoja" class="hoja" hidden><div class="asa"></div><h2 id="hTitulo"></h2><div id="hCuerpo"></div></div>
+<div id="toast"></div>
+
+<script>
+/* ================================================================ base */
+var VERSION = '1.0.0';
+var PAL = [
+  { bg: '#FFC7CE', fg: '#9C0006' }, { bg: '#FFEB9C', fg: '#7F6000' },
+  { bg: '#C6EFCE', fg: '#006100' }, { bg: '#BDD7EE', fg: '#1F4E78' }
+];
+var S = {
+  cfg: null, grupo: '', tab: 'clase', online: true, authError: false,
+  sesion: null, nov: {}, recientes: [],
+  acts: [], actividad: null, criterio: '', vals: {},
+  res: null, resKey: '', resVer: -1
+};
+var $ = function (s) { return document.querySelector(s); };
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function mkErr(code, msg) { var e = new Error(msg); e.code = code; return e; }
+function hoy() {
+  var d = new Date();
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+function etiquetaSesion(f, g, b) { return f + ' · ' + g + (b ? ' · ' + b : ''); }
+function copia(x) { return JSON.parse(JSON.stringify(x)); }
+
+var PRE = 'sa27:';
+var LS = {
+  get: function (k, def) { try { var v = localStorage.getItem(PRE + k); return v === null ? def : JSON.parse(v); } catch (e) { return def; } },
+  set: function (k, v) { try { localStorage.setItem(PRE + k, JSON.stringify(v)); } catch (e) { toast('No hay espacio para guardar datos en este dispositivo', true); } },
+  del: function (k) { try { localStorage.removeItem(PRE + k); } catch (e) {} },
+  borrarTodo: function () {
+    try { Object.keys(localStorage).filter(function (k) { return k.indexOf(PRE) === 0; }).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+  }
+};
+
+var tt;
+function toast(msg, err) {
+  var t = $('#toast'); t.textContent = msg; t.className = err ? 'err' : ''; t.style.display = 'block';
+  clearTimeout(tt); tt = setTimeout(function () { t.style.display = 'none'; }, err ? 5000 : 2200);
+}
+function abrirHoja(titulo, nodo) {
+  $('#hTitulo').textContent = titulo; var c = $('#hCuerpo'); c.innerHTML = ''; c.appendChild(nodo);
+  $('#velo').hidden = false; $('#hoja').hidden = false;
+}
+function cerrarHoja() { $('#velo').hidden = true; $('#hoja').hidden = true; }
+function estudiantesDe(grupo) { return S.cfg.estudiantes.filter(function (e) { return e.grupo === grupo; }); }
+function estudiantes() { return estudiantesDe(S.grupo); }
+function claseEstado(s) { return s.aporte > 0 ? 'azul' : (s.enDen ? 'rojo' : 'ambar'); }
+function estadoPorNombre(n) { return S.cfg.estados.filter(function (s) { return s.nombre === n; })[0]; }
+function nombreDe(etiqueta) { return String(etiqueta).split(' · ')[0]; }
+
+/* ================================================================ API (Apps Script) */
+function api(fn, args) {
+  var c = LS.get('conn', null);
+  if (!c) return Promise.reject(mkErr('AUTH', 'Este dispositivo no está conectado.'));
+  var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = ctl ? setTimeout(function () { ctl.abort(); }, 45000) : null;
+  function limpiar() { if (timer) clearTimeout(timer); }
+  return fetch(c.u, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ t: c.t, fn: fn, args: args || [] }), signal: ctl ? ctl.signal : undefined
+  }).then(function (r) { return r.text(); }, function () { limpiar(); throw mkErr('NET', 'Sin conexión'); })
+    .then(function (txt) {
+      limpiar();
+      var j;
+      try { j = JSON.parse(txt); } catch (e) { throw mkErr('CFG', 'El servidor no devolvió datos. Revise que la implementación permita acceso a «Cualquier persona».'); }
+      if (!j.ok) throw mkErr(j.code || 'APP', j.error || 'Error del servidor');
+      markOnline(true);
+      return j.data;
+    });
+}
+function markOnline(v) { if (S.online !== v) { S.online = v; } syncUI(); }
+function manejarRed(e) {
+  if (e && e.code === 'NET') { markOnline(false); return; }
+  if (e && (e.code === 'AUTH' || e.code === 'CFG')) { S.authError = true; syncUI(); return; }
+  if (e) toast(e.message, true);
+}
+
+/* ================================================================ cola de cambios (sin conexión) */
+var OB = { list: LS.get('outbox', []), errores: LS.get('errores', []), flushing: null, version: 0, timer: null };
+function obGuardar() { LS.set('outbox', OB.list); LS.set('errores', OB.errores); }
+function obPush(fn, args) {
+  OB.list.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), fn: fn, args: args, ts: Date.now() });
+  OB.version++; obGuardar(); syncUI(); flush();
+}
+function programarReintento() {
+  if (OB.timer) return;
+  OB.timer = setTimeout(function () { OB.timer = null; flush(); }, 15000);
+}
+function flush() {
+  if (OB.flushing) return OB.flushing;
+  if (!OB.list.length || !LS.get('conn', null)) return Promise.resolve();
+  S.authError = false;
+  OB.flushing = (function paso() {
+    if (!OB.list.length) return Promise.resolve();
+    var op = OB.list[0];
+    return api(op.fn, op.args).then(function (res) {
+      OB.list.shift(); OB.version++; obGuardar(); alExito(op, res); syncUI();
+      return paso();
+    }, function (e) {
+      if (e.code === 'NET') { markOnline(false); programarReintento(); return; }
+      if (e.code === 'AUTH' || e.code === 'CFG') { S.authError = true; syncUI(); return; }
+      OB.list.shift(); OB.errores.push({ op: op, msg: e.message, ts: Date.now() });
+      OB.version++; obGuardar(); syncUI();
+      return paso();
+    });
+  })().then(function () {
+    OB.flushing = null; syncUI();
+    if (!OB.list.length && S.online) convergir();
+  }, function () { OB.flushing = null; syncUI(); });
+  return OB.flushing;
+}
+function alExito(op, res) {
+  if (op.fn === 'iniciarSesion' && res) {
+    var base = novMap(res.novedades);
+    LS.set('nov:' + res.etiqueta, base);
+    if (S.sesion && S.sesion.etiqueta === res.etiqueta) { S.nov = pendNov(copia(base), res.etiqueta); renderClase(); }
+  } else if (op.fn === 'crearActividad' && res) {
+    var g = op.args[0].grupo;
+    for (var i = 0; i < S.acts.length; i++) {
+      if (S.acts[i].etiqueta === res.etiqueta) { var sel = S.actividad === S.acts[i]; S.acts[i] = res; if (sel) S.actividad = res; }
+    }
+    LS.set('act:' + g, S.acts.filter(function () { return true; }));
+  }
+}
+function convergir() {
+  if (!S.grupo || !S.cfg) return;
+  refrescarGrupo(S.grupo);
+  if (S.actividad) refrescarVals(S.actividad);
+}
+function syncUI() {
+  var b = $('#sync'); if (!b) return;
+  var n = OB.list.length, e = OB.errores.length, t;
+  if (S.authError) { b.textContent = 'Reconectar'; b.className = 'alerta'; return; }
+  if (n > 0) t = (S.online ? 'Sincronizando ' : 'Sin conexión · ') + n + (S.online ? '…' : ' pendientes');
+  else t = S.online ? 'Todo sincronizado ✓' : 'Sin conexión';
+  if (e) t += ' · ' + e + ' con error';
+  b.textContent = t; b.className = (e || (!S.online && n)) ? 'alerta' : '';
+}
+
+/* ---- aplicar los cambios pendientes sobre una copia de lo que dice el servidor */
+function novMap(lista) { var m = {}; (lista || []).forEach(function (n) { m[n.estudiante] = { estado: n.estado, obs: n.obs || '' }; }); return m; }
+function pendNov(map, ses) {
+  OB.list.forEach(function (op) {
+    if (op.fn === 'guardarNovedad' && op.args[0] === ses) map[op.args[1]] = { estado: op.args[2], obs: op.args[3] || '' };
+    else if (op.fn === 'quitarNovedad' && op.args[0] === ses) delete map[op.args[1]];
+  });
+  return map;
+}
+function pendVals(map, act, grupo) {
+  OB.list.forEach(function (op) {
+    var p = op.args[0];
+    if (op.fn === 'guardarValoracion' && p.actividad === act) {
+      map[p.estudiante + '|' + p.criterio] = { estudiante: p.estudiante, criterio: p.criterio, nivel: p.nivel, marca: p.marca || '', obs: p.obs || '', fecha: p.fecha };
+    } else if (op.fn === 'quitarValoracion' && p.actividad === act) {
+      delete map[p.estudiante + '|' + p.criterio];
+    } else if (op.fn === 'aplicarATodos' && p.actividad === act) {
+      estudiantesDe(grupo).forEach(function (e) {
+        var k = e.etiqueta + '|' + p.criterio;
+        if (!map[k]) map[k] = { estudiante: e.etiqueta, criterio: p.criterio, nivel: p.nivel, marca: '', obs: '', fecha: p.fecha };
+      });
+    }
+  });
+  return map;
+}
+function pendSesiones(lista, grupo) {
+  lista = copia(lista || []);
+  OB.list.forEach(function (op) {
+    if (op.fn !== 'iniciarSesion' || op.args[0] !== grupo) return;
+    var et = etiquetaSesion(op.args[1], grupo, op.args[2] || '');
+    if (!lista.some(function (s) { return s.etiqueta === et; })) lista.unshift({ id: '', etiqueta: et, fecha: op.args[1], bloque: op.args[2] || '', novedades: 0 });
+  });
+  return lista.sort(function (a, b) { return a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0; }).slice(0, 8);
+}
+function actividadLocal(d) {
+  var t = S.cfg.tipos.filter(function (x) { return x.nombre === d.tipo; })[0];
+  return { id: '', nombre: d.nombre, etiqueta: d.nombre + ' · ' + d.grupo, tipo: d.tipo, oficial: !!(t && t.oficial), fecha: d.fecha, referencia: d.referencia || '', criterios: d.criterios.slice() };
+}
+function pendActs(lista, grupo) {
+  lista = copia(lista || []);
+  OB.list.forEach(function (op) {
+    if (op.fn !== 'crearActividad' || op.args[0].grupo !== grupo) return;
+    var a = actividadLocal(op.args[0]);
+    if (!lista.some(function (x) { return x.etiqueta === a.etiqueta; })) lista.unshift(a);
+  });
+  return lista;
+}
+
+/* ================================================================ arranque y conexión */
+function arrancar() {
+  if (!LS.get('conn', null)) { $('#app').hidden = true; $('#setup').hidden = false; return; }
+  $('#setup').hidden = true;
+  var cache = LS.get('boot', null);
+  if (cache) { iniciarApp(cache); refrescarBoot(); return; }
+  api('getBootstrap').then(function (cfg) { LS.set('boot', cfg); iniciarApp(cfg); }).catch(function (e) {
+    if (e.code === 'NET') { $('#app').hidden = true; $('#setup').hidden = false; msgSetup('Sin conexión: la primera vez hace falta internet para cargar los catálogos.', true); }
+    else { $('#setup').hidden = false; msgSetup(e.message, true); }
+  });
+}
+function msgSetup(t, error) { $('#setupMsg').innerHTML = t ? '<div class="' + (error ? 'error' : 'nota') + '" style="margin-top:8px">' + esc(t) + '</div>' : ''; }
+
+function conectar() {
+  var txt = $('#codigo').value.replace(/\s+/g, ''), conn = null;
+  try { conn = JSON.parse(atob(txt)); } catch (e) { conn = null; }
+  if (!conn || !conn.u || !conn.t) { msgSetup('El código no es válido. Cópielo completo desde el menú Sistema 2027 de la hoja.', true); return; }
+  var b = $('#btnConectar'); b.disabled = true; msgSetup('Conectando…');
+  LS.set('conn', conn);
+  api('ping').then(function () { return api('getBootstrap'); }).then(function (cfg) {
+    LS.set('boot', cfg); $('#setup').hidden = true; $('#codigo').value = ''; msgSetup(''); iniciarApp(cfg);
+  }).catch(function (e) {
+    LS.del('conn');
+    msgSetup(e.code === 'AUTH' ? 'El servidor rechazó el código. Genere uno nuevo desde el menú de la hoja.' : e.message, true);
+  }).then(function () { b.disabled = false; });
+}
+
+function llenarGrupos(preferido) {
+  var sel = $('#grupo');
+  sel.innerHTML = S.cfg.grupos.map(function (g) { return '<option>' + esc(g.nombre) + '</option>'; }).join('');
+  var quiero = preferido || LS.get('grupo', '');
+  if (quiero && S.cfg.grupos.some(function (g) { return g.nombre === quiero; })) sel.value = quiero;
+}
+function iniciarApp(cfg) {
+  S.cfg = cfg; $('#app').hidden = false;
+  llenarGrupos();
+  $('#fecha').value = hoy();
+  $('#chkAvanzar').checked = LS.get('avanzar', true) !== false;
+  cambiarGrupo($('#grupo').value);
+  syncUI(); flush();
+}
+function refrescarBoot() {
+  api('getBootstrap').then(function (cfg) {
+    LS.set('boot', cfg); S.cfg = cfg; llenarGrupos($('#grupo').value);
+  }).catch(manejarRed);
+}
+
+function cambiarGrupo(nombre) {
+  S.grupo = nombre; LS.set('grupo', nombre);
+  S.sesion = null; S.nov = {}; S.actividad = null; S.criterio = ''; S.vals = {}; S.res = null; S.resKey = '';
+  S.recientes = pendSesiones(LS.get('ses:' + nombre, []), nombre);
+  S.acts = pendActs(LS.get('act:' + nombre, []), nombre);
+  renderClase(); renderRecientes(); renderActividades(); renderValorar();
+  if (S.tab === 'resumen') cargarResumen(true);
+  refrescarGrupo(nombre);
+}
+function refrescarGrupo(nombre) {
+  var v0 = OB.version;
+  Promise.all([api('sesionesRecientes', [nombre]), api('actividadesDeGrupo', [nombre])]).then(function (r) {
+    LS.set('ses:' + nombre, r[0]); LS.set('act:' + nombre, r[1]);
+    if (nombre !== S.grupo || OB.version !== v0 || OB.list.length) return;   // hay cambios locales en curso: no pisarlos
+    S.recientes = pendSesiones(r[0], nombre);
+    var prev = S.actividad && S.actividad.etiqueta;
+    S.acts = pendActs(r[1], nombre);
+    S.actividad = prev ? (S.acts.filter(function (a) { return a.etiqueta === prev; })[0] || null) : null;
+    renderRecientes(); renderActividades();
+    if (!S.actividad) { S.criterio = ''; S.vals = {}; renderValorar(); }
+  }).catch(manejarRed);
+}
+
+function mostrarTab(t) {
+  S.tab = t;
+  $('#vClase').hidden = t !== 'clase'; $('#vValorar').hidden = t !== 'valorar'; $('#vResumen').hidden = t !== 'resumen';
+  $('#tabClase').className = t === 'clase' ? 'on' : ''; $('#tabValorar').className = t === 'valorar' ? 'on' : '';
+  $('#tabResumen').className = t === 'resumen' ? 'on' : '';
+  window.scrollTo(0, 0);
+  if (t === 'resumen') cargarResumen(false);
+}
+
+/* ================================================================ clase (asistencia por excepción) */
+function renderRecientes() {
+  $('#recientes').innerHTML = S.recientes.map(function (s, i) {
+    return '<button class="chip" data-i="' + i + '">' + esc(s.fecha) + (s.bloque ? ' · ' + esc(s.bloque) : '') + ' (' + s.novedades + ')</button>';
+  }).join('') || '<span class="nota">Aún no hay sesiones de este grupo.</span>';
+}
+function periodoDe(fecha) {
+  return (S.cfg.periodos || []).filter(function (p) { return fecha >= p.inicio && fecha <= p.fin; })[0] || null;
+}
+
+function iniciar(fecha, bloque) {
+  var et = etiquetaSesion(fecha, S.grupo, bloque);
+  S.nov = pendNov(copia(LS.get('nov:' + et, {})), et);
+  S.sesion = { etiqueta: et, fecha: fecha, grupo: S.grupo, bloque: bloque };
+  var nueva = !S.recientes.some(function (s) { return s.etiqueta === et; });
+  if (nueva) S.recientes = pendSesiones(S.recientes.concat([{ id: '', etiqueta: et, fecha: fecha, bloque: bloque, novedades: 0 }]), S.grupo);
+  obPush('iniciarSesion', [S.grupo, fecha, bloque]);
+  if (S.cfg.periodos && S.cfg.periodos.length && !periodoDe(fecha)) toast('La fecha no está dentro de ningún periodo.', true);
+  else toast(nueva ? 'Clase registrada' : 'Clase reabierta');
+  renderRecientes(); renderClase();
+}
+
+function renderClase() {
+  var b = $('#bannerClase'), l = $('#listaClase'), busc = $('#buscar');
+  if (!S.sesion) { b.innerHTML = ''; busc.hidden = true; l.innerHTML = '<p class="vacio">Inicia la clase para registrar las novedades.<br>Quien no aparezca como novedad cuenta como presente.</p>'; return; }
+  var est = estudiantes(), q = (busc.value || '').toLowerCase(), k = Object.keys(S.nov).length;
+  busc.hidden = false;
+  b.innerHTML = '<div class="banner"><b>' + esc(S.sesion.etiqueta) + '</b><span>' + (est.length - k) + ' sin novedad · ' + k + ' con novedad</span></div>';
+  l.innerHTML = est.filter(function (e) { return !q || e.nombre.toLowerCase().indexOf(q) >= 0; }).map(function (e) {
+    var n = S.nov[e.etiqueta], st = n && estadoPorNombre(n.estado);
+    return '<button class="fila" data-e="' + esc(e.etiqueta) + '"><span>' + esc(e.nombre) + '</span>' +
+      (n ? '<span class="pill ' + (st ? claseEstado(st) : '') + '">' + esc(n.estado) + '</span>' : '') + '</button>';
+  }).join('') || '<p class="vacio">Sin resultados.</p>';
+}
+
+function abrirNovedad(et) {
+  var e = S.cfg.estudiantes.filter(function (x) { return x.etiqueta === et; })[0];
+  var actual = S.nov[et], box = document.createElement('div');
+  box.innerHTML = '<div class="grid">' + S.cfg.estados.map(function (s) {
+    return '<button class="op ' + claseEstado(s) + (actual && actual.estado === s.nombre ? ' sel' : '') + '" data-s="' + esc(s.nombre) + '">' + esc(s.nombre) + '</button>';
+  }).join('') + '</div><input id="obs" placeholder="Observación (opcional)" value="' + esc(actual ? actual.obs : '') + '">' +
+    (actual ? '<button class="btn" id="quitar" style="margin-top:10px;width:100%">Quitar novedad (estuvo presente)</button>' : '');
+  abrirHoja(e.nombre, box);
+  Array.prototype.forEach.call(box.querySelectorAll('[data-s]'), function (b) {
+    b.onclick = function () { guardarNov(et, b.getAttribute('data-s'), box.querySelector('#obs').value.trim()); cerrarHoja(); };
+  });
+  var q = box.querySelector('#quitar'); if (q) q.onclick = function () { quitarNov(et); cerrarHoja(); };
+}
+function guardarNov(et, estado, obs) {
+  var ses = S.sesion.etiqueta;
+  S.nov[et] = { estado: estado, obs: obs }; LS.set('nov:' + ses, S.nov); renderClase();
+  obPush('guardarNovedad', [ses, et, estado, obs]);
+}
+function quitarNov(et) {
+  var ses = S.sesion.etiqueta;
+  delete S.nov[et]; LS.set('nov:' + ses, S.nov); renderClase();
+  obPush('quitarNovedad', [ses, et]);
+}
+
+/* ================================================================ valorar */
+function criterioObj(nombre) { return S.cfg.criterios.filter(function (c) { return c.nombre === nombre; })[0]; }
+function claveVal(et) { return et + '|' + S.criterio; }
+function nivelDe(v) {
+  var c = criterioObj(S.criterio);
+  return c && v && v.nivel != null ? c.niveles.filter(function (n) { return n.orden === v.nivel; })[0] : null;
+}
+function renderActividades() {
+  var sel = $('#selAct');
+  sel.innerHTML = '<option value="">— elige una actividad —</option>' + S.acts.map(function (a, i) {
+    return '<option value="' + i + '">' + esc(a.fecha.slice(5)) + ' · ' + esc(a.nombre) + ' (' + esc(a.tipo) + ')</option>';
+  }).join('');
+  sel.value = S.actividad ? String(S.acts.indexOf(S.actividad)) : '';
+}
+function elegirActividad(a) {
+  S.actividad = a; S.vals = {}; S.criterio = a ? (a.criterios[0] || '') : '';
+  renderActividades(); renderValorar();
+  if (!a) return;
+  var c = LS.get('val:' + a.etiqueta, null);
+  if (c) { S.vals = pendVals(copia(c), a.etiqueta, S.grupo); renderValorar(); }
+  refrescarVals(a);
+}
+function refrescarVals(a) {
+  var v0 = OB.version, et = a.etiqueta;
+  api('valoracionesDeActividad', [et]).then(function (r) {
+    var m = {}; r.forEach(function (v) { m[v.estudiante + '|' + v.criterio] = v; });
+    LS.set('val:' + et, m);
+    if (!S.actividad || S.actividad.etiqueta !== et || OB.version !== v0 || OB.list.length) return;
+    S.vals = m; renderValorar();
+  }).catch(manejarRed);
+}
+
+function renderValorar() {
+  var a = S.actividad, info = $('#infoAct'), chips = $('#chipsCrit'), lista = $('#listaVal');
+  if (!a) {
+    info.textContent = ''; chips.innerHTML = ''; $('#btnTodos').hidden = true; $('#progreso').textContent = '';
+    lista.innerHTML = '<p class="vacio">Elige o crea una actividad para valorar.</p>'; return;
+  }
+  info.innerHTML = '<span class="pill ' + (a.oficial ? 'rojo' : 'azul') + '">' + esc(a.tipo) + (a.oficial ? ' · cuenta para la nota oficial' : ' · formativa') + '</span> ' +
+    esc(a.fecha) + (a.referencia ? ' · ' + esc(a.referencia) : '');
+  chips.innerHTML = a.criterios.length > 1 ? a.criterios.map(function (c) {
+    return '<button class="chip' + (c === S.criterio ? ' on' : '') + '" data-c="' + esc(c) + '">' + esc(c) + '</button>';
+  }).join('') : (a.criterios.length ? '<span class="chip on">' + esc(a.criterios[0]) + '</span>' : '<span class="nota">Esta actividad no tiene criterios asignados.</span>');
+  $('#btnTodos').hidden = a.oficial || !S.criterio;
+  renderListaVal();
+}
+function renderListaVal(destacar) {
+  var est = estudiantes(), hechos = 0;
+  $('#listaVal').innerHTML = est.map(function (e) {
+    var v = S.vals[claveVal(e.etiqueta)], pill = '<span class="pill">—</span>';
+    if (v) {
+      hechos++;
+      if (v.marca) pill = '<span class="pill">' + esc(v.marca) + '</span>';
+      else {
+        var n = nivelDe(v), p = n && PAL[n.banda];
+        pill = n ? '<span class="pill" style="background:' + (p ? p.bg : '#eef0f4') + ';color:' + (p ? p.fg : '#333') + '">' + esc(n.etiqueta) + '</span>' : '<span class="pill">Nivel ' + esc(v.nivel) + '</span>';
+      }
+    }
+    return '<button class="fila' + (destacar === e.etiqueta ? ' sig' : '') + '" data-e="' + esc(e.etiqueta) + '"><span>' + esc(e.nombre) + '</span>' + pill + '</button>';
+  }).join('');
+  $('#progreso').textContent = S.criterio ? 'Valorados: ' + hechos + ' de ' + est.length + ' · criterio «' + S.criterio + '»' : '';
+}
+
+function abrirValoracion(et) {
+  var c = criterioObj(S.criterio);
+  if (!c) { toast('Esta actividad no tiene un criterio válido.', true); return; }
+  var e = S.cfg.estudiantes.filter(function (x) { return x.etiqueta === et; })[0];
+  var v = S.vals[claveVal(et)], box = document.createElement('div');
+  var html = c.niveles.map(function (n) {
+    var p = PAL[n.banda] || { bg: '#eef0f4', fg: '#333' };
+    return '<button class="nivel' + (v && v.nivel === n.orden ? ' sel' : '') + '" style="background:' + p.bg + ';color:' + p.fg + '" data-n="' + n.orden + '"><b>' + esc(n.etiqueta) + '</b> · ' + esc(n.desempeno) +
+      '<small>' + esc(n.frase) + '</small></button>';
+  }).join('');
+  html += '<div class="sep">Otras opciones</div><div class="grid">' + S.cfg.marcas.map(function (m) {
+    return '<button class="op' + (v && v.marca === m.nombre ? ' sel' : '') + '" data-m="' + esc(m.nombre) + '">' + esc(m.nombre) + '</button>';
+  }).join('') + '</div><input id="obs" placeholder="Observación (opcional)" value="' + esc(v ? v.obs : '') + '">';
+  if (v && v.fecha === hoy()) html += '<button class="btn" id="quitar" style="margin-top:10px;width:100%">Quitar la valoración de hoy</button>';
+  else if (v) html += '<div class="nota" style="margin-top:8px">Hay una valoración del ' + esc(v.fecha) + '. Al guardar se agrega una nueva y la anterior queda en el historial.</div>';
+  box.innerHTML = html;
+  abrirHoja(e.nombre + ' · ' + c.nombre, box);
+  Array.prototype.forEach.call(box.querySelectorAll('[data-n]'), function (b) {
+    b.onclick = function () { guardarVal(et, Number(b.getAttribute('data-n')), '', box.querySelector('#obs').value.trim()); };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll('[data-m]'), function (b) {
+    b.onclick = function () { guardarVal(et, null, b.getAttribute('data-m'), box.querySelector('#obs').value.trim()); };
+  });
+  var q = box.querySelector('#quitar'); if (q) q.onclick = function () { quitarVal(et); };
+}
+function siguienteSinValor(desde) {
+  var est = estudiantes(), i = -1, k;
+  est.forEach(function (e, idx) { if (e.etiqueta === desde) i = idx; });
+  for (k = 1; k < est.length; k++) {
+    var e2 = est[(i + k) % est.length];
+    if (!S.vals[claveVal(e2.etiqueta)]) return e2;
+  }
+  return null;
+}
+function guardarVal(et, nivel, marca, obs) {
+  var act = S.actividad.etiqueta, crit = S.criterio, h = hoy();
+  S.vals[claveVal(et)] = { estudiante: et, criterio: crit, nivel: nivel, marca: marca, obs: obs, fecha: h };
+  LS.set('val:' + act, S.vals);
+  cerrarHoja(); renderListaVal();
+  obPush('guardarValoracion', [{ actividad: act, estudiante: et, criterio: crit, nivel: nivel, marca: marca, obs: obs, fecha: h }]);
+  if ($('#chkAvanzar').checked) {
+    var sig = siguienteSinValor(et);
+    if (sig) setTimeout(function () { renderListaVal(sig.etiqueta); abrirValoracion(sig.etiqueta); }, 150);
+    else toast('Todos los estudiantes tienen valoración');
+  }
+}
+function quitarVal(et) {
+  var act = S.actividad.etiqueta, crit = S.criterio, h = hoy();
+  delete S.vals[claveVal(et)]; LS.set('val:' + act, S.vals);
+  cerrarHoja(); renderListaVal();
+  obPush('quitarValoracion', [{ actividad: act, estudiante: et, criterio: crit, fecha: h }]);
+}
+function abrirTodos() {
+  var c = criterioObj(S.criterio), faltan = estudiantes().filter(function (e) { return !S.vals[claveVal(e.etiqueta)]; });
+  if (!faltan.length) { toast('Todos ya tienen valoración'); return; }
+  var box = document.createElement('div');
+  box.innerHTML = '<p class="nota">Se aplicará a ' + faltan.length + ' estudiante(s) sin valoración en «' + esc(c.nombre) + '». Después puedes corregir las excepciones una por una.</p>' +
+    c.niveles.map(function (n) {
+      var p = PAL[n.banda] || { bg: '#eef0f4', fg: '#333' };
+      return '<button class="nivel" style="background:' + p.bg + ';color:' + p.fg + '" data-n="' + n.orden + '"><b>' + esc(n.etiqueta) + '</b> · ' + esc(n.desempeno) + '<small>' + esc(n.frase) + '</small></button>';
+    }).join('');
+  abrirHoja('Aplicar a todos', box);
+  Array.prototype.forEach.call(box.querySelectorAll('[data-n]'), function (b) {
+    b.onclick = function () {
+      var nivel = Number(b.getAttribute('data-n')), n = c.niveles.filter(function (x) { return x.orden === nivel; })[0];
+      box.innerHTML = '<p>Aplicar <b>' + esc(n.etiqueta) + '</b> (' + esc(n.desempeno) + ') a ' + faltan.length + ' estudiante(s)?</p>' +
+        '<button class="btn primary big" id="ok">Confirmar</button><button class="btn big" id="no">Cancelar</button>';
+      box.querySelector('#no').onclick = cerrarHoja;
+      box.querySelector('#ok').onclick = function () { aplicarTodos(nivel, faltan); cerrarHoja(); };
+    };
+  });
+}
+function aplicarTodos(nivel, faltan) {
+  var act = S.actividad.etiqueta, crit = S.criterio, h = hoy();
+  faltan.forEach(function (e) {
+    S.vals[e.etiqueta + '|' + crit] = { estudiante: e.etiqueta, criterio: crit, nivel: nivel, marca: '', obs: '', fecha: h };
+  });
+  LS.set('val:' + act, S.vals); renderListaVal();
+  obPush('aplicarATodos', [{ actividad: act, criterio: crit, nivel: nivel, fecha: h }]);
+}
+
+function abrirNueva() {
+  var g = S.cfg.grupos.filter(function (x) { return x.nombre === S.grupo; })[0];
+  var crits = S.cfg.criterios.filter(function (c) { return c.activo && g.grado >= c.desde && g.grado <= c.hasta; });
+  var porDim = {}; crits.forEach(function (c) { (porDim[c.dimension] = porDim[c.dimension] || []).push(c); });
+  var box = document.createElement('div');
+  box.innerHTML = '<label class="nota">Nombre</label><input id="nNombre" placeholder="Ej.: Semáforo en bloques">' +
+    '<div class="row" style="margin-top:8px"><label>Tipo<select id="nTipo">' + S.cfg.tipos.map(function (t) { return '<option>' + esc(t.nombre) + '</option>'; }).join('') + '</select></label>' +
+    '<label>Fecha<input type="date" id="nFecha" value="' + esc(hoy()) + '"></label></div>' +
+    '<label class="nota" style="display:block;margin-top:8px">Referencia institucional (opcional)</label><input id="nRef" placeholder="Unidad o malla">' +
+    Object.keys(porDim).map(function (d) {
+      return '<div class="dim">' + esc(d) + '</div>' + porDim[d].map(function (c) {
+        return '<label class="opt"><input type="checkbox" data-c="' + esc(c.nombre) + '"> ' + esc(c.nombre) + '</label>';
+      }).join('');
+    }).join('') + '<p class="nota">Se recomiendan de 1 a 3 criterios por actividad.</p><div id="nMsg"></div>' +
+    '<button class="btn primary big" id="nCrear">Crear actividad</button>';
+  abrirHoja('Nueva actividad · ' + S.grupo, box);
+  box.querySelector('#nCrear').onclick = function () {
+    var cr = Array.prototype.map.call(box.querySelectorAll('input[data-c]:checked'), function (i) { return i.getAttribute('data-c'); });
+    var d = { nombre: box.querySelector('#nNombre').value.trim(), grupo: S.grupo, tipo: box.querySelector('#nTipo').value,
+      fecha: box.querySelector('#nFecha').value, referencia: box.querySelector('#nRef').value.trim(), criterios: cr };
+    var msg = !d.nombre ? 'Escriba el nombre de la actividad.' : !d.fecha ? 'Elija la fecha.' : !cr.length ? 'Elija al menos un criterio.'
+      : S.acts.some(function (a) { return a.etiqueta === d.nombre + ' · ' + d.grupo; }) ? 'Ya existe una actividad con ese nombre en este grupo.' : '';
+    if (msg) { box.querySelector('#nMsg').innerHTML = '<div class="error">' + esc(msg) + '</div>'; return; }
+    var a = actividadLocal(d);
+    S.acts.unshift(a); LS.set('act:' + S.grupo, S.acts);
+    obPush('crearActividad', [d]);
+    cerrarHoja(); elegirActividad(a); toast('Actividad creada');
+  };
+}
+
+/* ================================================================ resumen */
+function fmtNota(n) { return n == null ? '—' : Number(n).toFixed(S.res ? S.res.decimales : 1); }
+function pillBanda(banda, texto) {
+  var p = banda >= 0 ? PAL[banda] : null;
+  return '<span class="pill"' + (p ? ' style="background:' + p.bg + ';color:' + p.fg + '"' : '') + '>' + esc(texto) + '</span>';
+}
+function cargarResumen(forzar) {
+  if (!S.grupo) return;
+  var periodo = $('#resPeriodo').value || '', incluir = $('#resIncluir').value, grupo = S.grupo;
+  var key = grupo + '|' + periodo + '|' + incluir;
+  if (!forzar && S.res && S.resKey === key && S.resVer === OB.version) { renderResumen(); return; }
+  $('#resLista').innerHTML = '<p class="vacio">Calculando…</p>';
+  flush().then(function () {
+    if (grupo !== S.grupo) return;
+    if (OB.list.length || !S.online) return mostrarResumenGuardado(key);
+    var v0 = OB.version;
+    return api('resumenGrupo', [grupo, periodo, incluir]).then(function (r) {
+      var kReal = grupo + '|' + r.periodo + '|' + r.incluir, reg = { data: r, ts: Date.now() };
+      LS.set('res:' + key, reg); LS.set('res:' + kReal, reg);
+      if (grupo !== S.grupo) return;
+      S.res = r; S.resKey = kReal; S.resVer = v0;
+      var sel = $('#resPeriodo');
+      sel.innerHTML = r.periodos.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('');
+      sel.value = r.periodo;
+      renderResumen();
+    });
+  }).catch(function (e) {
+    if (e.code === 'NET') mostrarResumenGuardado(key);
+    else { manejarRed(e); $('#resLista').innerHTML = '<p class="vacio">' + esc(e.message) + '</p>'; }
+  });
+}
+function mostrarResumenGuardado(key) {
+  var c = LS.get('res:' + key, null);
+  if (!c) { S.res = null; $('#resLista').innerHTML = '<p class="vacio">El resumen necesita conexión.' + (OB.list.length ? '<br>Hay ' + OB.list.length + ' cambio(s) sin sincronizar.' : '') + '</p>'; return; }
+  S.res = c.data; S.resKey = key; S.resVer = -1;
+  var h = new Date(c.ts);
+  renderResumen('Datos guardados a las ' + ('0' + h.getHours()).slice(-2) + ':' + ('0' + h.getMinutes()).slice(-2) +
+    (OB.list.length ? ' · ' + OB.list.length + ' cambio(s) sin sincronizar no están incluidos' : ' · sin conexión'));
+}
+function renderResumen(aviso) {
+  var r = S.res; if (!r) return;
+  var est = r.estudiantes.slice();
+  if ($('#resOrden').checked) est.sort(function (a, b) { return (a.nota == null ? 99 : a.nota) - (b.nota == null ? 99 : b.nota); });
+  var cuenta = {}, sin = 0;
+  r.estudiantes.forEach(function (e) { if (e.banda >= 0) cuenta[e.banda] = (cuenta[e.banda] || 0) + 1; else sin++; });
+  $('#resDist').innerHTML = r.bandas.map(function (b, i) { return pillBanda(i, b + ' ' + (cuenta[i] || 0)); }).join(' ') + (sin ? ' <span class="pill">Sin nota ' + sin + '</span>' : '');
+  $('#resInfo').textContent = r.grupo + ' · ' + r.periodo + ' · ' + (r.incluir === 'oficial' ? 'nota oficial (solo evaluaciones)' : 'incluye seguimiento y verificación') + (aviso ? ' · ' + aviso : '');
+  $('#resLista').innerHTML = est.map(function (e) {
+    var sub = e.dims.map(function (d) { return esc(d.nombre.slice(0, 4)) + ' ' + fmtNota(d.nota); }).join(' · ') +
+      ' · Asist. ' + (e.asistencia == null ? '—' : Math.round(e.asistencia * 100) + '%') + (e.estado !== 'Completo' ? ' · ' + esc(e.estado) : '');
+    return '<button class="fila dos" data-e="' + esc(e.etiqueta) + '"><span><b>' + esc(e.nombre) + '</b><span class="sub">' + sub + '</span></span>' +
+      '<span>' + (e.nota == null ? '<span class="pill">Sin nota</span>' : '<span class="nt">' + fmtNota(e.nota) + '</span>' + pillBanda(e.banda, e.desempeno)) + '</span></button>';
+  }).join('') || '<p class="vacio">Este grupo no tiene estudiantes.</p>';
+}
+function abrirDetalle(et) {
+  var e = S.res.estudiantes.filter(function (x) { return x.etiqueta === et; })[0]; if (!e) return;
+  var h = '<div class="bloque"><h3>Resultado del periodo</h3><div class="linea"><span>Nota del periodo<small>' + esc(e.estado) + '</small></span><span>' +
+    (e.nota == null ? '<span class="pill">Sin nota</span>' : '<span class="nt">' + fmtNota(e.nota) + '</span>' + pillBanda(e.banda, e.desempeno)) + '</span></div></div>';
+  h += '<div class="bloque"><h3>Por dimensión</h3>' + e.dims.map(function (d) {
+    return '<div class="linea"><span>' + esc(d.nombre) + '</span><span>' + (d.nota == null ? '<span class="pill">Sin datos</span>' : '<span class="nt">' + fmtNota(d.nota) + '</span>' + pillBanda(d.banda, d.desempeno)) + '</span></div>';
+  }).join('') + '</div>';
+  h += '<div class="bloque"><h3>Por criterio</h3>' + e.criterios.map(function (c) {
+    return '<div class="linea"><span>' + esc(c.nombre) + '<small>' + (c.n ? esc(c.ultimaFrase) + (c.n > 1 ? ' · ' + c.n + ' valoraciones' : '') : 'Sin valoraciones en este periodo') + '</small></span><span>' +
+      (c.nota == null ? '' : '<span class="nt">' + fmtNota(c.nota) + '</span>' + pillBanda(c.banda, c.desempeno)) + '</span></div>';
+  }).join('') + '</div>';
+  h += '<div class="bloque"><h3>Asistencia</h3><div class="linea"><span>' + (e.asistencia == null ? 'Sin sesiones registradas' : Math.round(e.asistencia * 1000) / 10 + ' %') +
+    '<small>' + e.consideradas + ' de ' + e.sesiones + ' sesiones consideradas · asistencia perdida: ' + e.perdida + '</small></span></div>' +
+    (e.novedades.length ? e.novedades.map(function (n) { return '<div class="linea"><span>' + esc(n.fecha) + '</span><span>' + esc(n.estado) + '</span></div>'; }).join('') : '<div class="nota">Sin novedades en el periodo.</div>') + '</div>';
+  var box = document.createElement('div'); box.innerHTML = h;
+  abrirHoja(e.nombre + ' · ' + S.res.periodo, box);
+}
+
+/* ================================================================ ajustes y sincronización */
+var promptInstalar = null;
+function describirOp(op) {
+  var a = op.args, p = a[0];
+  switch (op.fn) {
+    case 'iniciarSesion': return 'Clase del ' + a[1] + ' · ' + a[0];
+    case 'guardarNovedad': return 'Novedad de ' + nombreDe(a[1]) + ' (' + a[2] + ')';
+    case 'quitarNovedad': return 'Quitar novedad de ' + nombreDe(a[1]);
+    case 'crearActividad': return 'Actividad «' + p.nombre + '»';
+    case 'guardarValoracion': return 'Valoración de ' + nombreDe(p.estudiante) + ' en «' + p.criterio + '»';
+    case 'quitarValoracion': return 'Quitar valoración de ' + nombreDe(p.estudiante);
+    case 'aplicarATodos': return 'Aplicar un nivel a todos en «' + p.criterio + '»';
+    default: return op.fn;
+  }
+}
+function abrirAjustes() {
+  var box = document.createElement('div');
+  function dibujar() {
+    var h = '<div class="bloque"><h3>Sincronización</h3><div class="linea"><span>Estado</span><span>' + (S.authError ? 'Requiere reconectar' : S.online ? 'En línea' : 'Sin conexión') + '</span></div>' +
+      '<div class="linea"><span>Cambios por enviar</span><span>' + OB.list.length + '</span></div></div>';
+    if (OB.errores.length) {
+      h += '<div class="bloque"><h3>Cambios que el servidor rechazó</h3>' + OB.errores.map(function (x, i) {
+        return '<div class="linea" style="align-items:flex-start"><span>' + esc(describirOp(x.op)) + '<small>' + esc(x.msg) + '</small></span><span>' +
+          '<button class="btn small" data-r="' + i + '">Reintentar</button> <button class="btn small" data-d="' + i + '">Descartar</button></span></div>';
+      }).join('') + '</div>';
+    }
+    h += '<button class="btn big" id="aSync">Sincronizar ahora</button><button class="btn big" id="aCat">Recargar catálogos</button>';
+    if (promptInstalar) h += '<button class="btn primary big" id="aInst">Instalar la app</button>';
+    else if (/iphone|ipad/i.test(navigator.userAgent) && !(navigator.standalone)) h += '<p class="nota">En iPhone o iPad: Compartir → «Añadir a pantalla de inicio».</p>';
+    h += '<button class="btn big" id="aDes" style="margin-top:18px">Desconectar este dispositivo</button><p class="nota">Versión ' + VERSION + '</p>';
+    box.innerHTML = h;
+    var b;
+    if ((b = box.querySelector('#aSync'))) b.onclick = function () { S.authError = false; flush().then(function () { toast(OB.list.length ? 'Aún hay cambios pendientes' : 'Todo sincronizado'); dibujar(); }); };
+    if ((b = box.querySelector('#aCat'))) b.onclick = function () { refrescarBoot(); toast('Actualizando catálogos…'); };
+    if ((b = box.querySelector('#aInst'))) b.onclick = function () { promptInstalar.prompt(); };
+    Array.prototype.forEach.call(box.querySelectorAll('[data-r]'), function (x) {
+      x.onclick = function () { var e = OB.errores.splice(Number(x.getAttribute('data-r')), 1)[0]; OB.list.push(e.op); OB.version++; obGuardar(); syncUI(); flush(); dibujar(); };
+    });
+    Array.prototype.forEach.call(box.querySelectorAll('[data-d]'), function (x) {
+      x.onclick = function () { OB.errores.splice(Number(x.getAttribute('data-d')), 1); OB.version++; obGuardar(); syncUI(); convergir(); dibujar(); };
+    });
+    if ((b = box.querySelector('#aDes'))) b.onclick = function () {
+      box.innerHTML = '<p>' + (OB.list.length ? '<b>Hay ' + OB.list.length + ' cambio(s) sin sincronizar que se perderán.</b><br>' : '') +
+        'Se borrarán los datos guardados en este dispositivo y deberá volver a conectar. ¿Continuar?</p>' +
+        '<button class="btn primary big" id="ok">Desconectar</button><button class="btn big" id="no">Cancelar</button>';
+      box.querySelector('#no').onclick = dibujar;
+      box.querySelector('#ok').onclick = function () {
+        LS.borrarTodo(); OB.list = []; OB.errores = []; S.cfg = null; S.res = null; cerrarHoja(); arrancar();
+      };
+    };
+  }
+  dibujar(); abrirHoja('Ajustes', box);
+}
+
+/* ================================================================ eventos */
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); promptInstalar = e; });
+window.addEventListener('online', function () { markOnline(true); flush(); if (S.cfg) convergir(); });
+window.addEventListener('offline', function () { markOnline(false); });
+document.addEventListener('visibilitychange', function () { if (!document.hidden) flush(); });
+
+$('#btnConectar').onclick = conectar;
+$('#sync').onclick = function () { if (S.authError) { LS.del('conn'); arrancar(); } else abrirAjustes(); };
+$('#ajustes').onclick = abrirAjustes;
+$('#grupo').onchange = function () { cambiarGrupo(this.value); };
+$('#tabClase').onclick = function () { mostrarTab('clase'); };
+$('#tabValorar').onclick = function () { mostrarTab('valorar'); };
+$('#tabResumen').onclick = function () { mostrarTab('resumen'); };
+$('#resPeriodo').onchange = function () { cargarResumen(true); };
+$('#resIncluir').onchange = function () { cargarResumen(true); };
+$('#resOrden').onchange = function () { renderResumen(); };
+$('#resActualizar').onclick = function () { cargarResumen(true); };
+$('#resLista').onclick = function (ev) { var b = ev.target.closest('[data-e]'); if (b && S.res) abrirDetalle(b.getAttribute('data-e')); };
+$('#velo').onclick = cerrarHoja;
+$('#btnIniciar').onclick = function () { var f = $('#fecha').value; if (!f) { toast('Elige la fecha', true); return; } iniciar(f, $('#bloque').value.trim()); };
+$('#recientes').onclick = function (ev) {
+  var b = ev.target.closest('[data-i]'); if (!b) return;
+  var s = S.recientes[Number(b.getAttribute('data-i'))]; $('#fecha').value = s.fecha; $('#bloque').value = s.bloque; iniciar(s.fecha, s.bloque);
+};
+$('#buscar').oninput = renderClase;
+$('#listaClase').onclick = function (ev) { var b = ev.target.closest('[data-e]'); if (b) abrirNovedad(b.getAttribute('data-e')); };
+$('#selAct').onchange = function () { elegirActividad(this.value === '' ? null : S.acts[Number(this.value)]); };
+$('#btnNueva').onclick = abrirNueva;
+$('#chipsCrit').onclick = function (ev) { var b = ev.target.closest('[data-c]'); if (!b) return; S.criterio = b.getAttribute('data-c'); renderValorar(); };
+$('#chkAvanzar').onchange = function () { LS.set('avanzar', this.checked); };
+$('#btnTodos').onclick = abrirTodos;
+$('#listaVal').onclick = function (ev) { var b = ev.target.closest('[data-e]'); if (b) abrirValoracion(b.getAttribute('data-e')); };
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+syncUI();
+arrancar();
+</script>
+</body>
+</html>
